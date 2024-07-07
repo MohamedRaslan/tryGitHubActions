@@ -61813,13 +61813,11 @@ const execCommand = async (fullCommand, waitToFinish = true, label = 'executing'
     const cwd = workingDirectory;
     console.log(`${label} command "${fullCommand}"`);
     console.log(`current working directory "${cwd}"`);
-    const executionCode = exec.exec('bash', ['-c', fullCommand], { cwd });
     if (waitToFinish) {
         console.log(`waiting for the command to finish? ${waitToFinish}`);
-        console.log(await executionCode);
-        return await executionCode;
+        return await exec.exec('bash', ['-c', fullCommand], { cwd });
     }
-    return executionCode;
+    return exec.exec('bash', ['-c', fullCommand], { cwd });
 };
 /**
  * Grabs a boolean GitHub Action parameter input and casts it.
