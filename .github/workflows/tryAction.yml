@@ -1,0 +1,43 @@
+name: Test My GithHub Action
+on:
+  push:
+    branches:
+      - dev
+
+permissions:
+  contents: read
+  packages: read
+  statuses: write
+
+jobs:
+  lint:
+    name: Try the action
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        id: setup-node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install Dependencies
+        id: install
+        run: npm ci
+
+      - name: Use the local action
+        id: try-local
+        uses: ./
+        with:
+          start: npm run fake-servers
+          wait-on:
+            'http://localhost:4001, http://localhost:4002, http://localhost:4003'
+          wait-on-timeout: 120
+          command: npm run lint

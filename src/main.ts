@@ -1,26 +1,192 @@
 import * as core from '@actions/core'
-import { wait } from './wait'
+import * as exec from '@actions/exec'
+import os from 'node:os'
+import path from 'node:path'
+import { ping } from './ping'
+import Debug from 'debug'
 
+const debug = Debug('backgrond_run_and_test')
+
+//const homeDirectory = os.homedir()
+//const platformAndArch = `${process.platform}-${process.arch}`
+
+const startWorkingDirectory = process.cwd()
+// seems the working directory should be absolute to work correctly
+// https://github.com/cypress-io/github-action/issues/211
+const workingDirectory = core.getInput('working-directory')
+  ? path.resolve(core.getInput('working-directory'))
+  : startWorkingDirectory
+
+const isWindows = (): boolean => os.platform() === 'win32'
+const isUrl = (s: string): boolean => /^https?:\/\//.test(s)
+
+debug(`working directory ${workingDirectory}`)
+/**
+ * Parses input command, finds the tool and
+ * the runs the command.
+ */
+const execCommand = async (
+  fullCommand: string,
+  waitToFinish = true,
+  label = 'executing'
+): Promise<number> => {
+  const cwd = workingDirectory
+
+  console.log('%s command "%s"', label, fullCommand)
+  console.log('current working directory "%s"', cwd)
+
+  const executionCode = exec.exec('bash', ['-c', fullCommand], { cwd })
+  if (waitToFinish) {
+    debug(`waiting for the command to finish? ${waitToFinish}`)
+
+    return await executionCode
+  }
+
+  return executionCode
+}
+
+/**
+ * Grabs a boolean GitHub Action parameter input and casts it.
+ * @param {string} name - parameter name
+ * @param {boolean} defaultValue - default value to use if the parameter was not specified
+ * @returns {boolean} converted input argument or default value
+ */
+/*
+const getInputBool = (name: string, defaultValue: boolean = false): boolean => {
+  const param = core.getInput(name)
+  if (param === 'true' || param === '1') {
+    return true
+  }
+  if (param === 'false' || param === '0') {
+    return false
+  }
+
+  return defaultValue
+}*/
+
+/**
+ * The main function for the testing action.
+ * @returns {Promise<void>} Resolves when the action is complete.
+ */
+async function runTest(): Promise<Promise<number>[] | undefined> {
+  let userCommand
+  if (isWindows()) {
+    // allow custom Windows command command
+    userCommand = core.getInput('command-windows') || core.getInput('command')
+  } else {
+    userCommand = core.getInput('command')
+  }
+  if (!userCommand) {
+    return
+  }
+  // allow commands to be separated using commas or newlines
+  const separateCommands = userCommand
+    .split(/,|\n/)
+    .map(s => s.trim())
+    .filter(Boolean)
+  debug(
+    `Separated ${
+      separateCommands.length
+    } main commands ${separateCommands.join(', ')}`
+  )
+
+  return separateCommands.map(async command => {
+    return execCommand(command, true, `run command "${command}"`)
+  })
+}
+
+const startServersMaybe = async (): Promise<Promise<number>[] | undefined> => {
+  let userStartCommand
+
+  if (isWindows()) {
+    // allow custom Windows start command
+    userStartCommand = core.getInput('start-windows') || core.getInput('start')
+  } else {
+    userStartCommand = core.getInput('start')
+  }
+  if (!userStartCommand) {
+    debug('No start command found')
+    return
+  }
+
+  // allow commands to be separated using commas or newlines
+  const separateStartCommands = userStartCommand
+    .split(/,|\n/)
+    .map(s => s.trim())
+    .filter(Boolean)
+  debug(
+    `Separated ${
+      separateStartCommands.length
+    } start commands ${separateStartCommands.join(', ')}`
+  )
+
+  return separateStartCommands.map(async startCommand => {
+    return execCommand(startCommand, false, `start server`)
+  })
+}
+
+/**
+ * Pings give URL(s) until the timeout expires.
+ * @param {string} waitOn A single URL or comma-separated URLs
+ * @param {Number?} waitOnTimeout in seconds
+ */
+const waitOnUrl = async (waitOn: string, waitOnTimeout = 60): Promise<void> => {
+  console.log(
+    'waiting on "%s" with timeout of %s seconds',
+    waitOn,
+    waitOnTimeout
+  )
+
+  const waitTimeoutMs = waitOnTimeout * 1000
+
+  const waitUrls = waitOn
+    .split(',')
+    .map((s: string) => s.trim())
+    .filter(Boolean)
+  debug(`Waiting for urls ${waitUrls.join(', ')}`)
+
+  return ping(waitUrls, waitTimeoutMs)
+}
+
+const waitOnMaybe = async (): Promise<number | void> => {
+  const waitOn = core.getInput('wait-on')
+  if (!waitOn) {
+    return
+  }
+
+  const waitOnTimeout = core.getInput('wait-on-timeout') || '60'
+  const timeoutSeconds = parseFloat(waitOnTimeout)
+
+  if (isUrl(waitOn)) {
+    return waitOnUrl(waitOn, timeoutSeconds)
+  }
+
+  console.log('Waiting using command "%s"', waitOn)
+  return execCommand(waitOn, true)
+}
 /**
  * The main function for the action.
  * @returns {Promise<void>} Resolves when the action is complete.
  */
 export async function run(): Promise<void> {
   try {
-    const ms: string = core.getInput('milliseconds')
+    await startServersMaybe()
+    await waitOnMaybe()
+    await runTest()
+    debug('all done, exiting')
+    // force exit to avoid waiting for child processes,
+    // like the server we have started
+    // see https://github.com/actions/toolkit/issues/216
+    process.exit(0)
+  } catch (error: unknown) {
+    // final catch - when anything goes wrong, throw an error
+    // and exit the action with non-zero code
+    if (error instanceof Error) {
+      debug(error.message)
+      debug(error.stack)
 
-    // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
-    core.debug(`Waiting ${ms} milliseconds ...`)
-
-    // Log the current timestamp, wait, then log the new timestamp
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
-
-    // Set outputs for other workflow steps to use
-    core.setOutput('time', new Date().toTimeString())
-  } catch (error) {
-    // Fail the workflow run if an error occurs
-    if (error instanceof Error) core.setFailed(error.message)
+      core.setFailed(error.message)
+    }
+    process.exit(1)
   }
 }

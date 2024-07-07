@@ -1,18 +1,37 @@
-name: 'The name of your action here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'ServeAndWait'
+description:
+  'Spin up a server in the background for tests, wait for the server to be
+  availabel then run your tests'
+author: 'Mohamed Raslan'
 
 # Add your action's branding here. This will appear on the GitHub Marketplace.
 branding:
-  icon: 'heart'
+  icon: 'server'
   color: 'red'
 
 # Define your inputs here.
 inputs:
-  milliseconds:
-    description: 'Your input description here'
+  command:
+    description: 'Main command to run'
     required: true
-    default: '1000'
+  command-windows:
+    description: 'Main command to run on Windows'
+    required: false
+  start:
+    description: 'Command for starting local server in the background'
+    required: false
+  start-windows:
+    description: 'A different start command on Windows'
+    required: false
+  wait-on:
+    description: 'Local server URL to wait for'
+    required: false
+  wait-on-timeout:
+    description: 'Amount of time to wait for wait-on url to be available'
+    required: false
+  cwd:
+    description: 'Current working directory'
+    required: false
 
 # Define your outputs here.
 outputs:
