@@ -61860,7 +61860,7 @@ async function runTest() {
         .filter(Boolean);
     main_debug(`Separated ${separateCommands.length} main commands ${separateCommands.join(', ')}`);
     return await Promise.all(separateCommands.map(async (command) => {
-        return await execCommand(command, false);
+        return await execCommand(command, true);
     }));
 }
 const startServersMaybe = async () => {
