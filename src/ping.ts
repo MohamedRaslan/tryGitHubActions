@@ -41,5 +41,6 @@ export const ping = async (
   } catch (err) {
     debug(`Failed to wait on the requested resources`)
     debug(err)
+    throw Error('Failed to wait on the requested resources')
   }
 }

@@ -61782,6 +61782,7 @@ const ping = async (url, timeout, expectedStatus = 200, isInsecure = true, isLog
     catch (err) {
         debug(`Failed to wait on the requested resources`);
         debug(err);
+        throw Error('Failed to wait on the requested resources');
     }
 };
 
@@ -61924,7 +61925,7 @@ async function run() {
         await startServersMaybe();
         await waitOnMaybe();
         await runTest();
-        main_debug('all done, exiting');
+        main_debug('All done, exiting');
         // force exit to avoid waiting for child processes,
         // like the server we have started
         // see https://github.com/actions/toolkit/issues/216

@@ -171,7 +171,7 @@ export async function run(): Promise<void> {
     await startServersMaybe()
     await waitOnMaybe()
     await runTest()
-    debug('all done, exiting')
+    debug('All done, exiting')
     // force exit to avoid waiting for child processes,
     // like the server we have started
     // see https://github.com/actions/toolkit/issues/216
