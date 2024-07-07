@@ -35,13 +35,14 @@ const execCommand = async (
   console.log(`${label} command "${fullCommand}"`)
   console.log(`current working directory "${cwd}"`)
 
+  const executionCode = await exec.exec('bash', ['-c', fullCommand], { cwd })
   if (waitToFinish) {
-    console.log(`waiting for the command to finish? ${waitToFinish}`)
+    debug(`waiting for the command to finish? ${waitToFinish}`)
 
-    return await exec.exec('bash', ['-c', fullCommand], { cwd })
+    return await executionCode
   }
 
-  return exec.exec('bash', ['-c', fullCommand], { cwd })
+  return executionCode
 }
 
 /**
@@ -90,7 +91,7 @@ async function runTest(): Promise<Promise<number>[] | undefined> {
   )
 
   return separateCommands.map(async command => {
-    return execCommand(command, true)
+    return await execCommand(command, true)
   })
 }
 

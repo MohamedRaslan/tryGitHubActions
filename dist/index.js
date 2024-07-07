@@ -61813,11 +61813,12 @@ const execCommand = async (fullCommand, waitToFinish = true, label = 'executing'
     const cwd = workingDirectory;
     console.log(`${label} command "${fullCommand}"`);
     console.log(`current working directory "${cwd}"`);
+    const executionCode = await exec.exec('bash', ['-c', fullCommand], { cwd });
     if (waitToFinish) {
-        console.log(`waiting for the command to finish? ${waitToFinish}`);
-        return await exec.exec('bash', ['-c', fullCommand], { cwd });
+        main_debug(`waiting for the command to finish? ${waitToFinish}`);
+        return await executionCode;
     }
-    return exec.exec('bash', ['-c', fullCommand], { cwd });
+    return executionCode;
 };
 /**
  * Grabs a boolean GitHub Action parameter input and casts it.
@@ -61860,7 +61861,7 @@ async function runTest() {
         .filter(Boolean);
     main_debug(`Separated ${separateCommands.length} main commands ${separateCommands.join(', ')}`);
     return separateCommands.map(async (command) => {
-        return execCommand(command, true);
+        return await execCommand(command, true);
     });
 }
 const startServersMaybe = async () => {
