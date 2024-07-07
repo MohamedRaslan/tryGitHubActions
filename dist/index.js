@@ -61809,16 +61809,15 @@ main_debug(`working directory ${workingDirectory}`);
  * Parses input command, finds the tool and
  * the runs the command.
  */
-const execCommand = async (fullCommand, waitToFinish = true, label = 'executing') => {
+const execCommand = (fullCommand, waitToFinish = true, label = 'executing') => {
     const cwd = workingDirectory;
     console.log(`${label} command "${fullCommand}"`);
     console.log(`current working directory "${cwd}"`);
-    const executionCode = await exec.exec('bash', ['-c', fullCommand], { cwd });
+    const executionCode = exec.exec('bash', ['-c', fullCommand], { cwd });
     if (waitToFinish) {
         main_debug(`waiting for the command to finish? ${waitToFinish}`);
-        return await executionCode;
+        return executionCode;
     }
-    return executionCode;
 };
 /**
  * Grabs a boolean GitHub Action parameter input and casts it.
@@ -61860,9 +61859,9 @@ async function runTest() {
         .map(s => s.trim())
         .filter(Boolean);
     main_debug(`Separated ${separateCommands.length} main commands ${separateCommands.join(', ')}`);
-    return separateCommands.map(async (command) => {
-        return await execCommand(command, true);
-    });
+    return await Promise.all(separateCommands.map(async (command) => {
+        return await execCommand(command, false);
+    }));
 }
 const startServersMaybe = async () => {
     let userStartCommand;
@@ -61883,9 +61882,9 @@ const startServersMaybe = async () => {
         .map(s => s.trim())
         .filter(Boolean);
     main_debug(`Separated ${separateStartCommands.length} start commands ${separateStartCommands.join(', ')}`);
-    return separateStartCommands.map(async (startCommand) => {
-        return execCommand(startCommand, false, `start server`);
-    });
+    return await Promise.all(separateStartCommands.map(async (startCommand) => {
+        return await execCommand(startCommand, false, `start server`);
+    }));
 };
 /**
  * Pings give URL(s) until the timeout expires.

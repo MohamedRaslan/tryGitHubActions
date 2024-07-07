@@ -25,24 +25,22 @@ debug(`working directory ${workingDirectory}`)
  * Parses input command, finds the tool and
  * the runs the command.
  */
-const execCommand = async (
+const execCommand = (
   fullCommand: string,
   waitToFinish = true,
   label = 'executing'
-): Promise<number> => {
+): Promise<number> | undefined => {
   const cwd = workingDirectory
 
   console.log(`${label} command "${fullCommand}"`)
   console.log(`current working directory "${cwd}"`)
 
-  const executionCode = await exec.exec('bash', ['-c', fullCommand], { cwd })
+  const executionCode = exec.exec('bash', ['-c', fullCommand], { cwd })
   if (waitToFinish) {
     debug(`waiting for the command to finish? ${waitToFinish}`)
 
-    return await executionCode
+    return executionCode
   }
-
-  return executionCode
 }
 
 /**
@@ -68,7 +66,7 @@ const getInputBool = (name: string, defaultValue: boolean = false): boolean => {
  * The main function for the testing action.
  * @returns {Promise<void>} Resolves when the action is complete.
  */
-async function runTest(): Promise<Promise<number>[] | undefined> {
+async function runTest(): Promise<(number | undefined)[] | undefined> {
   let userCommand
   if (isWindows()) {
     // allow custom Windows command command
@@ -90,12 +88,16 @@ async function runTest(): Promise<Promise<number>[] | undefined> {
     } main commands ${separateCommands.join(', ')}`
   )
 
-  return separateCommands.map(async command => {
-    return await execCommand(command, true)
-  })
+  return await Promise.all(
+    separateCommands.map(async command => {
+      return await execCommand(command, true)
+    })
+  )
 }
 
-const startServersMaybe = async (): Promise<Promise<number>[] | undefined> => {
+const startServersMaybe = async (): Promise<
+  (number | undefined)[] | undefined
+> => {
   let userStartCommand
 
   if (isWindows()) {
@@ -120,9 +122,11 @@ const startServersMaybe = async (): Promise<Promise<number>[] | undefined> => {
     } start commands ${separateStartCommands.join(', ')}`
   )
 
-  return separateStartCommands.map(async startCommand => {
-    return execCommand(startCommand, false, `start server`)
-  })
+  return await Promise.all(
+    separateStartCommands.map(async startCommand => {
+      return await execCommand(startCommand, false, `start server`)
+    })
+  )
 }
 
 /**
