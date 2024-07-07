@@ -61810,8 +61810,8 @@ main_debug(`working directory ${workingDirectory}`);
  */
 const execCommand = async (fullCommand, waitToFinish = true, label = 'executing') => {
     const cwd = workingDirectory;
-    console.log('%s command "%s"', label, fullCommand);
-    console.log('current working directory "%s"', cwd);
+    console.log(`${label} command "${fullCommand}"`);
+    console.log(`current working directory "${cwd}"`);
     const executionCode = exec.exec('bash', ['-c', fullCommand], { cwd });
     if (waitToFinish) {
         main_debug(`waiting for the command to finish? ${waitToFinish}`);
@@ -61892,7 +61892,7 @@ const startServersMaybe = async () => {
  * @param {Number?} waitOnTimeout in seconds
  */
 const waitOnUrl = async (waitOn, waitOnTimeout = 60) => {
-    console.log('waiting on "%s" with timeout of %s seconds', waitOn, waitOnTimeout);
+    console.log(`waiting on "${waitOn}" with timeout of ${waitOnTimeout} seconds`);
     const waitTimeoutMs = waitOnTimeout * 1000;
     const waitUrls = waitOn
         .split(',')
@@ -61908,10 +61908,11 @@ const waitOnMaybe = async () => {
     }
     const waitOnTimeout = core.getInput('wait-on-timeout') || '60';
     const timeoutSeconds = parseFloat(waitOnTimeout);
+    console.log(`Will wait for ${timeoutSeconds} sec`);
     if (isUrl(waitOn)) {
         return waitOnUrl(waitOn, timeoutSeconds);
     }
-    console.log('Waiting using command "%s"', waitOn);
+    console.log(`Waiting using command ${waitOn}`);
     return execCommand(waitOn, true);
 };
 /**
@@ -61936,6 +61937,11 @@ async function run() {
             main_debug(error.message);
             main_debug(error.stack);
             core.setFailed(error.message);
+        }
+        else {
+            main_debug('Unkown error happend');
+            main_debug(error);
+            core.setFailed('Unkown error happend');
         }
         process.exit(1);
     }

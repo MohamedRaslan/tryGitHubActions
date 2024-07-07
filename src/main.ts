@@ -32,8 +32,8 @@ const execCommand = async (
 ): Promise<number> => {
   const cwd = workingDirectory
 
-  console.log('%s command "%s"', label, fullCommand)
-  console.log('current working directory "%s"', cwd)
+  console.log(`${label} command "${fullCommand}"`)
+  console.log(`current working directory "${cwd}"`)
 
   const executionCode = exec.exec('bash', ['-c', fullCommand], { cwd })
   if (waitToFinish) {
@@ -131,11 +131,7 @@ const startServersMaybe = async (): Promise<Promise<number>[] | undefined> => {
  * @param {Number?} waitOnTimeout in seconds
  */
 const waitOnUrl = async (waitOn: string, waitOnTimeout = 60): Promise<void> => {
-  console.log(
-    'waiting on "%s" with timeout of %s seconds',
-    waitOn,
-    waitOnTimeout
-  )
+  console.log(`waiting on "${waitOn}" with timeout of ${waitOnTimeout} seconds`)
 
   const waitTimeoutMs = waitOnTimeout * 1000
 
@@ -157,11 +153,13 @@ const waitOnMaybe = async (): Promise<number | void> => {
   const waitOnTimeout = core.getInput('wait-on-timeout') || '60'
   const timeoutSeconds = parseFloat(waitOnTimeout)
 
+  console.log(`Will wait for ${timeoutSeconds} sec`)
+
   if (isUrl(waitOn)) {
     return waitOnUrl(waitOn, timeoutSeconds)
   }
 
-  console.log('Waiting using command "%s"', waitOn)
+  console.log(`Waiting using command ${waitOn}`)
   return execCommand(waitOn, true)
 }
 /**

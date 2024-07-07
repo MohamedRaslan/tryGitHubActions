@@ -34,7 +34,7 @@
     "package": "npx ncc build src/index.ts -o dist --source-map --license licenses.txt",
     "package:watch": "npm run package -- --watch",
     "test": "npx jest",
-    "fake-servers": "concurrently \"yarn serve -s build/app1 -p 4001 --debug\" \"serve -s __tests__/build/app2 -p 4002 --debug\" \"serve -s __tests__/build/app3 -p 4003 --debug\"",
+    "fake-servers": "concurrently \"yarn serve -s __tests__/build/app1 -p 4001 --debug\" \"serve -s __tests__/build/app2 -p 4002 --debug\" \"serve -s __tests__/build/app3 -p 4003 --debug\"",
     "all": "npm run format:write && npm run lint && npm run test && npm run coverage && npm run package"
   },
   "license": "MIT",
