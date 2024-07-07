@@ -61815,7 +61815,8 @@ const execCommand = async (fullCommand, waitToFinish = true, label = 'executing'
     console.log(`current working directory "${cwd}"`);
     const executionCode = exec.exec('bash', ['-c', fullCommand], { cwd });
     if (waitToFinish) {
-        main_debug(`waiting for the command to finish? ${waitToFinish}`);
+        console.log(`waiting for the command to finish? ${waitToFinish}`);
+        console.log(await executionCode);
         return await executionCode;
     }
     return executionCode;
@@ -61861,7 +61862,7 @@ async function runTest() {
         .filter(Boolean);
     main_debug(`Separated ${separateCommands.length} main commands ${separateCommands.join(', ')}`);
     return separateCommands.map(async (command) => {
-        return execCommand(command, true, `run command "${command}"`);
+        return execCommand(command, true);
     });
 }
 const startServersMaybe = async () => {
@@ -61909,11 +61910,11 @@ const waitOnMaybe = async () => {
     }
     const waitOnTimeout = core.getInput('wait-on-timeout') || '60';
     const timeoutSeconds = parseFloat(waitOnTimeout);
-    console.log(`Will wait for ${timeoutSeconds} sec`);
+    console.log(`will wait for ${timeoutSeconds} sec`);
     if (isUrl(waitOn)) {
         return waitOnUrl(waitOn, timeoutSeconds);
     }
-    console.log(`Waiting using command ${waitOn}`);
+    console.log(`waiting using command ${waitOn}`);
     return execCommand(waitOn, true);
 };
 /**
@@ -61925,7 +61926,7 @@ async function run() {
         await startServersMaybe();
         await waitOnMaybe();
         await runTest();
-        main_debug('All done, exiting');
+        main_debug('all done, exiting');
         // force exit to avoid waiting for child processes,
         // like the server we have started
         // see https://github.com/actions/toolkit/issues/216

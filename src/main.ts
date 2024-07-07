@@ -37,8 +37,9 @@ const execCommand = async (
 
   const executionCode = exec.exec('bash', ['-c', fullCommand], { cwd })
   if (waitToFinish) {
-    debug(`waiting for the command to finish? ${waitToFinish}`)
+    console.log(`waiting for the command to finish? ${waitToFinish}`)
 
+    console.log(await executionCode)
     return await executionCode
   }
 
@@ -91,7 +92,7 @@ async function runTest(): Promise<Promise<number>[] | undefined> {
   )
 
   return separateCommands.map(async command => {
-    return execCommand(command, true, `run command "${command}"`)
+    return execCommand(command, true)
   })
 }
 
@@ -153,13 +154,13 @@ const waitOnMaybe = async (): Promise<number | void> => {
   const waitOnTimeout = core.getInput('wait-on-timeout') || '60'
   const timeoutSeconds = parseFloat(waitOnTimeout)
 
-  console.log(`Will wait for ${timeoutSeconds} sec`)
+  console.log(`will wait for ${timeoutSeconds} sec`)
 
   if (isUrl(waitOn)) {
     return waitOnUrl(waitOn, timeoutSeconds)
   }
 
-  console.log(`Waiting using command ${waitOn}`)
+  console.log(`waiting using command ${waitOn}`)
   return execCommand(waitOn, true)
 }
 /**
@@ -171,7 +172,7 @@ export async function run(): Promise<void> {
     await startServersMaybe()
     await waitOnMaybe()
     await runTest()
-    debug('All done, exiting')
+    debug('all done, exiting')
     // force exit to avoid waiting for child processes,
     // like the server we have started
     // see https://github.com/actions/toolkit/issues/216
