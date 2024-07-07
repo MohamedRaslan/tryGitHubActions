@@ -186,7 +186,13 @@ export async function run(): Promise<void> {
       debug(error.stack)
 
       core.setFailed(error.message)
+    } else {
+      debug('Unkown error happend')
+      debug(error)
+
+      core.setFailed('Unkown error happend')
     }
+
     process.exit(1)
   }
 }
