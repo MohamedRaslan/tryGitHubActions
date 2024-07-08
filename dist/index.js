@@ -61902,12 +61902,9 @@ const waitOnUrl = async (waitOn, waitOnTimeout = 60) => {
 const waitOnMaybe = async () => {
     const waitOn = core.getInput('wait-on');
     const shouldWait = getInputBool('wait-if', true);
-    console.log(`wait-if is ${shouldWait}`);
-    if (!waitOn) {
-        return;
-    }
-    if (!shouldWait) {
-        console.log(`skip waiting on the required resources`);
+    if (!waitOn || !shouldWait) {
+        if (!shouldWait)
+            console.log(`skip waiting on the required resources`);
         return;
     }
     const waitOnTimeout = core.getInput('wait-on-timeout') || '60';
