@@ -61825,18 +61825,16 @@ const execCommand = (fullCommand, waitToFinish = true, label = 'executing') => {
  * @param {boolean} defaultValue - default value to use if the parameter was not specified
  * @returns {boolean} converted input argument or default value
  */
-/*
-const getInputBool = (name: string, defaultValue: boolean = false): boolean => {
-  const param = core.getInput(name)
-  if (param === 'true' || param === '1') {
-    return true
-  }
-  if (param === 'false' || param === '0') {
-    return false
-  }
-
-  return defaultValue
-}*/
+const getInputBool = (name, defaultValue = false) => {
+    const param = core.getInput(name);
+    if (param === 'true' || param === '1') {
+        return true;
+    }
+    if (param === 'false' || param === '0') {
+        return false;
+    }
+    return defaultValue;
+};
 /**
  * The main function for the testing action.
  * @returns {Promise<void>} Resolves when the action is complete.
@@ -61903,7 +61901,8 @@ const waitOnUrl = async (waitOn, waitOnTimeout = 60) => {
 };
 const waitOnMaybe = async () => {
     const waitOn = core.getInput('wait-on');
-    if (!waitOn) {
+    const shouldWait = getInputBool('wait-if');
+    if (!waitOn || shouldWait === false) {
         return;
     }
     const waitOnTimeout = core.getInput('wait-on-timeout') || '60';

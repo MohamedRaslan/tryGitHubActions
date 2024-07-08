@@ -49,7 +49,7 @@ const execCommand = (
  * @param {boolean} defaultValue - default value to use if the parameter was not specified
  * @returns {boolean} converted input argument or default value
  */
-/*
+
 const getInputBool = (name: string, defaultValue: boolean = false): boolean => {
   const param = core.getInput(name)
   if (param === 'true' || param === '1') {
@@ -60,7 +60,7 @@ const getInputBool = (name: string, defaultValue: boolean = false): boolean => {
   }
 
   return defaultValue
-}*/
+}
 
 /**
  * The main function for the testing action.
@@ -150,7 +150,9 @@ const waitOnUrl = async (waitOn: string, waitOnTimeout = 60): Promise<void> => {
 
 const waitOnMaybe = async (): Promise<number | void> => {
   const waitOn = core.getInput('wait-on')
-  if (!waitOn) {
+  const shouldWait = getInputBool('wait-if')
+
+  if (!waitOn || shouldWait === false) {
     return
   }
 

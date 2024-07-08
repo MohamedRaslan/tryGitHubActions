@@ -39,5 +39,6 @@ jobs:
           start: npm run fake-servers
           wait-on:
             'http://localhost:4001, http://localhost:4002, http://localhost:4003'
+          wait-if: false
           wait-on-timeout: 10
           command: npm run lint
