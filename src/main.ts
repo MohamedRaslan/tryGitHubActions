@@ -153,6 +153,7 @@ const waitOnMaybe = async (): Promise<number | void> => {
   const shouldWait = getInputBool('wait-if', true)
 
   if (!waitOn || !shouldWait) {
+    if (!shouldWait) console.log(`skip waiting on the required resources`)
     return
   }
 
